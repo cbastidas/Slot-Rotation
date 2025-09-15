@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Casino Slot Game</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #ecf0f1;
+            --accent-color: #e74c3c;
+            --container-height: 250px;
+            --box-width: 200px;
+            /* Gates of Olympus inspired colors */
+            --bg-start: #0f1c2c;
+            --bg-end: #4a0c4f;
+            --bg-anim-color1: #5b3063;
+            --bg-anim-color2: #341a4a;
+        }
+
+        /* Default styles for large devices (Desktop and Horizontal Tablets) */
+        @media only screen and (min-width: 1025px) {
+            :root {
+                --container-height: 250px;
+                --box-width: 200px;
+            }
+        }
+
+        /* Styles for Tablets (Portrait Mode) and small Laptops
+          Screen width: 768px to 1024px
+        */
+        @media only screen and (min-width: 768px) and (max-width: 1024px) {
+            :root {
+                --container-height: 200px;
+                --box-width: 150px;
+            }
+        }
+
+        /* Styles for large mobile devices
+          Screen width: 481px to 767px
+        */
+        @media only screen and (min-width: 481px) and (max-width: 767px) {
+            :root {
+                --container-height: 180px;
+                --box-width: 130px;
+            }
+        }
+
+        /* Styles for small mobile devices
+          Screen width: 320px to 480px
+        */
+        @media only screen and (min-width: 320px) and (max-width: 480px) {
+            :root {
+                --container-height: 150px;
+                --box-width: 100px;
+            }
+        }
+
+        /* Base Styles */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--primary-color);
+            color: var(--secondary-color);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            text-align: center;
+            overflow: hidden;
+            box-sizing: border-box;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Animated Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: radial-gradient(circle at 50% 120%, var(--bg-start), var(--bg-end));
+            animation: background-glow 15s linear infinite;
+            z-index: -1;
+        }
+
+        @keyframes background-glow {
+            0% { transform: scale(1) rotate(0deg); opacity: 0.8; }
+            50% { transform: scale(1.1) rotate(180deg); opacity: 1; }
+            100% { transform: scale(1) rotate(360deg); opacity: 0.8; }
+        }
+
+        /* Responsive Title */
+        h1 {
+            font-family: 'Oswald', sans-serif;
+            font-size: 3.5em;
+            margin: 50px 0 20px 0;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+            color: #ffd700;
+            z-index: 10;
+        }
+
+        /* Animation Container */
+        .boxes-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: nowrap;
+            width: 100%;
+            max-width: 90vw;
+            height: var(--container-height);
+            overflow: hidden;
+            border-radius: 10px;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+            background-color: rgba(0, 0, 0, 0.2);
+            z-index: 10;
+        }
+
+        /* Box styles */
+        .box {
+            min-width: var(--box-width);
+            max-width: var(--box-width);
+            height: calc(var(--box-width) * 0.57); /* 300x170 aspect ratio */
+            margin: 0 5px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .box img {
+            width: 100%;
+            height: 100%;
+            display: block;
+            object-fit: cover;
+        }
+
+        /*
+            New Animation Logic for seamless loop
+            The 'to' value is now dynamic to create a perfect loop
+        */
+        @keyframes slowRotate {
+            from { transform: translateX(0); }
+            to { transform: translateX(-1800px); /* This value is a multiple of total box width to create a loop */ }
+        }
+
+        /* Keyframes for fast rotation (3s linear) */
+        @keyframes fastRotate {
+            from { transform: translateX(0); }
+            to { transform: translateX(-1800px); }
+        }
+
+        /* Keyframes for deceleration (2s cubic-bezier) */
+        @keyframes stopRotate {
+            from { transform: translateX(0); }
+            to { transform: translateX(-1800px); }
+        }
+
+        /* Classes for animation states */
+        .box.rotating-slow {
+            animation: slowRotate 20s linear infinite;
+        }
+        
+        .box.rotating-fast {
+            animation: fastRotate 0.5s linear infinite;
+        }
+        
+        .box.rotating-stop {
+            animation: stopRotate 2s cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
+        }
+
+        .box.winner {
+            border: 3px solid #ffd700;
+            box-shadow: 0 0 15px #ffd700, 0 0 25px #ffd700;
+        }
+        
+        /* Sparkle animation effect */
+        .sparkle {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('https://i.ibb.co/6yWwJ25/sparkle.png');
+            background-size: cover;
+            animation: sparkle-glow 1s infinite;
+        }
+
+        @keyframes sparkle-glow {
+            0% { opacity: 0.5; transform: scale(0.9); }
+            50% { opacity: 1; transform: scale(1.1); }
+            100% { opacity: 0.5; transform: scale(0.9); }
+        }
+
+        /* Action button */
+        #spin-button {
+            background-color: var(--accent-color);
+            color: var(--secondary-color);
+            border: none;
+            padding: 15px 30px;
+            margin-top: 30px;
+            font-size: 1.2em;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s, background-color 0.2s;
+            z-index: 10;
+        }
+
+        #spin-button:hover:not(:disabled) {
+            background-color: #c0392b;
+            transform: translateY(-2px);
+        }
+
+        #spin-button:active:not(:disabled) {
+            transform: translateY(1px);
+        }
+
+        #spin-button:disabled {
+            background-color: #7f8c8d;
+            cursor: not-allowed;
+        }
+        
+        /* Prize Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .modal-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: #fff;
+            color: var(--primary-color);
+            padding: 40px 30px;
+            border-radius: 10px;
+            text-align: center;
+            max-width: 90%;
+            transform: translateY(-50px);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-overlay.visible .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-content h2 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .modal-content p {
+            font-size: 1.2em;
+            margin-bottom: 20px;
+        }
+
+        .modal-cta {
+            background-color: var(--accent-color);
+            color: var(--secondary-color);
+            padding: 15px 30px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            display: inline-block;
+            transition: background-color 0.2s;
+        }
+
+        .modal-cta:hover {
+            background-color: #c0392b;
+        }
+
+        /* Media Queries for Responsiveness */
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2em;
+                margin-top: 30px;
+            }
+
+            #spin-button {
+                padding: 12px 25px;
+                font-size: 1em;
+            }
+
+            .modal-content h2 {
+                font-size: 1.5em;
+            }
+
+            .modal-content p {
+                font-size: 1em;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Casino Slots</h1>
+    
+    <div class="boxes-container" id="boxes-container"></div>
+    
+    <button id="spin-button">Spin!</button>
+
+    <div class="modal-overlay" id="prize-modal">
+        <div class="modal-content">
+            <h2 id="modal-title">Congratulations!</h2>
+            <p id="modal-message">You have won a great prize!</p>
+            <a href="#" class="modal-cta" id="modal-cta">Claim Your Prize</a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const boxesContainer = document.getElementById('boxes-container');
+            const spinButton = document.getElementById('spin-button');
+            const prizeModal = document.getElementById('prize-modal');
+            const modalCta = document.getElementById('modal-cta');
+
+            // List of images
+            const images = [
+                'assets/casino.jpeg',
+                'assets/zeus.jpeg',
+                'assets/aviator.png',
+                'assets/fortune-rabbit.jpeg',
+                'assets/sweet-bonanza.jpeg',
+                'assets/the-dog-house.jpeg',
+                'assets/wild-wild-bananas.jpeg',
+                'assets/sugar-rush.jpeg',
+                'assets/Starlight-Princess.jpeg',
+                'assets/Big-Bass.jpeg',
+                'assets/Gems-Bonanza.jpeg',
+                'assets/Mustang-Gold.jpeg',
+                'assets/Wolf-Gold.jpeg',
+                'assets/Chili-Heat.jpeg',
+                'assets/Joker.jpeg',
+            ];
+            
+            // Winning images (selected from the main list)
+            const winningImages = [
+                images[0], // casino.jpeg
+                images[2], // aviator.png
+                images[8], // Starlight-Princess.jpeg
+            ];
+
+            // Duplicating the image list multiple times for a smoother animation loop
+            const allImages = [...images, ...images, ...images, ...images, ...images];
+
+            // Function to generate the boxes
+            function generateBoxes() {
+                boxesContainer.innerHTML = '';
+                allImages.forEach(src => {
+                    const box = document.createElement('div');
+                    box.classList.add('box');
+                    const img = document.createElement('img');
+                    img.src = src;
+                    img.alt = 'Casino Game';
+                    box.appendChild(img);
+                    boxesContainer.appendChild(box);
+                });
+                // Start slow rotation initially
+                const allBoxes = document.querySelectorAll('.box');
+                allBoxes.forEach(box => box.classList.add('rotating-slow'));
+            }
+
+            // Function to handle the spin animation
+            function spinBoxes() {
+                spinButton.disabled = true;
+                const allBoxes = document.querySelectorAll('.box');
+                const winningImage = winningImages[Math.floor(Math.random() * winningImages.length)];
+                
+                // 1. Start the fast spin
+                allBoxes.forEach(box => {
+                    box.classList.remove('rotating-slow', 'rotating-stop', 'winner');
+                    box.classList.add('rotating-fast');
+                    const sparkle = box.querySelector('.sparkle');
+                    if (sparkle) sparkle.remove();
+                });
+                
+                // 2. After 3 seconds, transition to the deceleration phase
+                setTimeout(() => {
+                    allBoxes.forEach(box => {
+                        box.classList.remove('rotating-fast');
+                        box.classList.add('rotating-stop');
+                    });
+                    
+                    // 3. After the 2-second deceleration, stop and show the result
+                    setTimeout(() => {
+                        // Stop the animation
+                        allBoxes.forEach(box => {
+                            box.classList.remove('rotating-stop');
+                            box.style.animation = 'none';
+                        });
+
+                        // Re-generate boxes to ensure a clean slate and the selected winners
+                        generateBoxes();
+
+                        // Get the newly generated boxes
+                        const finalBoxes = document.querySelectorAll('.box');
+                        const centerIndex = Math.floor(finalBoxes.length / 2);
+
+                        // A small delay to ensure DOM is ready
+                        setTimeout(() => {
+                            finalBoxes[centerIndex].innerHTML = `<img src="${winningImage}" alt="Winner">`;
+                            finalBoxes[centerIndex].classList.add('winner');
+                            
+                            const sparkleDiv = document.createElement('div');
+                            sparkleDiv.classList.add('sparkle');
+                            finalBoxes[centerIndex].appendChild(sparkleDiv);
+
+                            // The prize modal now appears here, after the animations are stopped
+                            setTimeout(() => {
+                                prizeModal.classList.add('visible');
+                            }, 500);
+
+                            spinButton.disabled = false;
+                        }, 50);
+
+                    }, 2000); // Deceleration duration
+                }, 3000); // Fast spin duration
+            }
+            
+            // Function to close the modal and redirect
+            function claimPrize(url) {
+                modalCta.href = url;
+            }
+            
+            spinButton.addEventListener('click', spinBoxes);
+            
+            // IMPORTANT: Set your desired URL here!
+            const prizeUrl = "https://your-destination-website.com";
+            claimPrize(prizeUrl);
+            
+            // Generate the initial boxes on page load
+            generateBoxes();
+        });
+    </script>
+
+</body>
+</html>
